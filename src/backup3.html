@@ -6,16 +6,51 @@
 <body>
 
 	<script>
-	var gameScene = new Phaser.Scene('Game');
-	gameScene.preload = function() {
+	var config = {
+		type: Phaser.AUTO,
+		width: 640,
+		backgroundColor: '#fff',
+		height: 900,
+		physics: {
+			default: 'arcade',
+			arcade: {
+				gravity: { y: 100 }
+			},
+			impact: {}
+		},
+		scene: {
+			preload: preload,
+			create: create,
+			update: update
+		}
+	};
+
+	var game = new Phaser.Game(config);
+	var player;
+	var lava;
+	var playerImpact;
+	var platforms;
+	var cursors;
+	var tileSpriteBg;
+	var tileSpriteWall;
+	// var blockA;
+	function preload ()
+	{
+		//this.load.setBaseURL('http://labs.phaser.io');
+
 		this.load.image('background', 'assets/images/generals/bg.dark.png');
 		this.load.image('wall', 'assets/images/generals/wall.png');
 		this.load.image('ground', 'assets/images/generals/platform.png');
 		this.load.spritesheet('lava', 'assets/images/sprites/lava2.png', { frameWidth: 640, frameHeight: 300 });
 		this.load.spritesheet('laxo', 'assets/images/sprites/laxo_70x93.png', { frameWidth: 70, frameHeight: 93 });
-	};
 
-	gameScene.create = function() {
+		
+		//this.load.image('logo', 'assets/sprites/phaser3-logo.png');
+		//this.load.image('red', 'assets/particles/red.png');
+	}
+
+	function create ()
+	{
 		console.log(">>>|", game);
 	 //   game.world.setBounds(0, 0, 2000, 2000);
 
@@ -24,9 +59,8 @@
 		tileSpriteWall = this.add.tileSprite(105, config.height/2, 216, config.height, 'wall');
 
 		platforms = this.physics.add.staticGroup();
-		// platforms.create(10, config.height - 400, 'ground');
-		platforms.create(200, config.height - 400, 'ground').setScale(10, 1).refreshBody();
-		platforms.create(200, config.height, 'ground').setScale(10, 1).refreshBody();
+
+		platforms.create(50, config.height - 400, 'ground');
 		//console.log(o);
 		//console.log(tileSpriteWall);//.anchor.setTo(.5,.5);
 		player = this.physics.add.sprite(100, config.height - 500, 'laxo');
@@ -73,15 +107,16 @@
 		this.physics.add.collider(player, platforms);
 		// this.physics.add.collider(stars, platforms);
 
-		this.physics.add.overlap(player, lava, function(player, lava){
-		    if ( player && lava ) {
-		    	gameScene.gameOver();
-		    }
-		}, null, this);
+		this.physics.add.overlap(player, lava, collectStar, null, this);
 		lava.anims.play('lavaMovement', true);
-	};
-
-	gameScene.update = function() {
+	}
+	var counter = 0;
+	var positions = [260, 280, 300, 320, 340, 360, 380, 400, 420, 440, 460, 480, 500, 520, 540, 560];
+	function choose(choices) {
+		var index = Math.floor(Math.random() * choices.length);
+		return choices[index];
+	}
+	function update () {
 		lava.setVelocityY(-16);
 		// if (cursors.up.isDown) {
 		// 	player.setVelocityY(-160);
@@ -92,11 +127,9 @@
 		if (cursors.left.isDown) {
 			player.setVelocityX(-160);
 			player.anims.play('up', true);
-			avoidDie();
 		} else if (cursors.right.isDown) {
 			player.setVelocityX(160);
 			player.anims.play('up', true);
-			avoidDie();
 		}
 
 		// else if (cursors.down.isDown) {
@@ -136,73 +169,14 @@
 		//
 
 		//o.setVelocityY(-160);
-	};
-
-	gameScene.render = function() {
-
-	};
-
-	gameScene.die = function() {
-
-	};
-
-	gameScene.gameOver = function() {
-		this.scene.restart();
-	};
-
-	var config = {
-		type: Phaser.AUTO,
-		width: 640,
-		backgroundColor: '#fff',
-		height: 900,
-		physics: {
-			default: 'arcade',
-			arcade: {
-				gravity: { y: 100 }
-			},
-			impact: {}
-		},
-		scene: gameScene
-		// scene: {
-		// 	preload: preload,
-		// 	create: create,
-		// 	update: update,
-		// 	gameOver: gameOver
-		// }
-	};
-
-	var game = new Phaser.Game(config);
-	var player;
-	var lava;
-	var playerImpact;
-	var platforms;
-	var cursors;
-	var tileSpriteBg;
-	var tileSpriteWall;
-	// var blockA;
-
-	var counter = 0;
-	var positions = [260, 280, 300, 320, 340, 360, 380, 400, 420, 440, 460, 480, 500, 520, 540, 560];
-	
-	function choose(choices) {
-		var index = Math.floor(Math.random() * choices.length);
-		return choices[index];
 	}
-
-	function avoidDie() {
-		lava.setVelocityY(16);
+	function render() {
+		// game.debug.cameraInfo(game.camera, 32, 32);
 	}
-
-	function playerDie (player, lava)
+	function collectStar (player, lava)
 	{
 	    console.log(">>>", player, "------", lava);
-	    if ( player && lava ) {
-	    	game.scene.restart();
-	    }
 	    //star.disableBody(true, true);
-	}
-	function gameOver() {
-    	this.scene.restart();
 	}
 	</script>
 
