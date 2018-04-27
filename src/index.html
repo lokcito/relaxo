@@ -38,6 +38,9 @@
 	var cursors;
 	var tileSpriteBg;
 	var tileSpriteWall;
+	var tileSpriteFloor;
+	var scoreText;
+	var score = 0;
 	// var blockA;
 
 	var counter = 0;
@@ -53,6 +56,9 @@
 	gameScene.preload = function() {
 		this.load.image('background', 'assets/images/generals/bg.dark.png');
 		this.load.image('wall', 'assets/images/generals/wall.png');
+		this.load.image('platform-transparency', 'assets/images/generals/platform-transparency.png');
+		this.load.image('ground', 'assets/images/generals/platform.png');
+		this.load.image('food', 'assets/images/generals/platform.png');
 		this.load.image('floor', 'assets/images/sprites/floor.png');
 		this.load.image('base', 'assets/images/generals/platform-orange.png');
 		this.load.spritesheet('lava', 'assets/images/sprites/lava@640x130.png', { frameWidth: 640, frameHeight: 130 });
@@ -67,9 +73,11 @@
 		tileSpriteBg = this.add.tileSprite(config.width/2, config.height/2, config.width, config.height, 'background');
 		tileSpriteWall = this.add.tileSprite(105, config.height/2, 216, config.height, 'wall');
 
+		tileSpriteFloor = this.add.tileSprite(config.width/2, config.height - 220, config.width, 32, 'floor');
+
 		platforms = this.physics.add.staticGroup();
 		// platforms.create(10, config.height - 400, 'ground');
-		platforms.create(200, config.height - 220, 'floor').setScale(10, 1).refreshBody();
+		platforms.create(200, config.height - 220, 'platform-transparency').setScale(10, 1).refreshBody();
 		
 		platformsBase = this.physics.add.staticGroup();
 		platformsBase.create(200, config.height, 'base').setScale(10, 1).refreshBody();
@@ -79,7 +87,7 @@
 		
 		//console.log(o);
 		//console.log(tileSpriteWall);//.anchor.setTo(.5,.5);
-		player = this.physics.add.sprite(100, config.height - 500, 'laxo');
+		player = this.physics.add.sprite(100, config.height - 300, 'laxo');
 		lava = this.physics.add.sprite(config.width/2, config.height, 'lava');
 
 	   // this.cameras.main.startFollow(player);
@@ -140,6 +148,9 @@
 		}, null, this);
 		
 		lava.anims.play('lavaMovement', true);
+		
+		scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#fff' });
+		
 	};
 
 	gameScene.update = function() {
@@ -192,7 +203,13 @@
         //     player.setVelocityY(-330);
         // }
 		if ( counter%100 === 0 ) {
-			this.physics.add.image(choose(positions), 0, 'ground');
+			var oo = this.physics.add.image(choose(positions), 0, 'food');
+			this.physics.add.overlap(player, oo, function(player, oo){
+		    if ( player && oo ) {
+		    	gameScene.eatingFood(oo);
+		    }
+			}, null, this);			
+			
 		}
 		// platforms = this.physics.add.staticGroup();
 		// platforms.create(50, 250, 'ground');
@@ -234,6 +251,14 @@
 		lava.setVelocityY(16);
 	};
 
+
+	gameScene.eatingFood = function(food) {
+		food.disableBody(true, true);
+		score += 10;
+		scoreText.setText('Score: ' + score);
+		//console.log("eating");
+		//lava.setVelocityY(16);
+	};
 	</script>
 
 </body>
