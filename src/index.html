@@ -11,7 +11,7 @@
 		type: Phaser.AUTO,
 		width: 640,
 		backgroundColor: '#fff',
-		height: 900,
+		height: 700,
 		physics: {
 			default: 'arcade',
 			arcade: {
@@ -27,11 +27,14 @@
 		// 	gameOver: gameOver
 		// }
 	};
+	
 	var game = new Phaser.Game(config);
 	var player;
 	var lava;
 	var playerImpact;
 	var platforms;
+	var platformsBase;
+	var platformsBaseBg;
 	var cursors;
 	var tileSpriteBg;
 	var tileSpriteWall;
@@ -39,13 +42,21 @@
 
 	var counter = 0;
 	var positions = [260, 280, 300, 320, 340, 360, 380, 400, 420, 440, 460, 480, 500, 520, 540, 560];
-	var firstTime = false;
+	// var firstTime = false;
+	var willKilltoPlayer = true;
+	
+	function choose(choices) {
+		var index = Math.floor(Math.random() * choices.length);
+		return choices[index];
+	}
+	
 	gameScene.preload = function() {
 		this.load.image('background', 'assets/images/generals/bg.dark.png');
 		this.load.image('wall', 'assets/images/generals/wall.png');
-		this.load.image('ground', 'assets/images/generals/platform.png');
-		this.load.spritesheet('lava', 'assets/images/sprites/lava2.png', { frameWidth: 640, frameHeight: 300 });
-		this.load.spritesheet('laxo', 'assets/images/sprites/laxo_70x93.png', { frameWidth: 70, frameHeight: 93 });
+		this.load.image('floor', 'assets/images/sprites/floor.png');
+		this.load.image('base', 'assets/images/generals/platform-orange.png');
+		this.load.spritesheet('lava', 'assets/images/sprites/lava@640x130.png', { frameWidth: 640, frameHeight: 130 });
+		this.load.spritesheet('laxo', 'assets/images/sprites/laxo.png', { frameWidth: 93, frameHeight: 70 });
 	};
 
 	gameScene.create = function() {
@@ -58,8 +69,14 @@
 
 		platforms = this.physics.add.staticGroup();
 		// platforms.create(10, config.height - 400, 'ground');
-		platforms.create(200, config.height - 400, 'ground').setScale(10, 1).refreshBody();
-		platforms.create(200, config.height, 'ground').setScale(10, 1).refreshBody();
+		platforms.create(200, config.height - 220, 'floor').setScale(10, 1).refreshBody();
+		
+		platformsBase = this.physics.add.staticGroup();
+		platformsBase.create(200, config.height, 'base').setScale(10, 1).refreshBody();
+		
+		platformsBaseBg = this.physics.add.staticGroup();
+		platformsBaseBg.create(200, config.height-30, 'base').setScale(10, 5).refreshBody();
+		
 		//console.log(o);
 		//console.log(tileSpriteWall);//.anchor.setTo(.5,.5);
 		player = this.physics.add.sprite(100, config.height - 500, 'laxo');
@@ -72,8 +89,6 @@
 		player.setBounce(0.2);
 		player.setCollideWorldBounds(true);
 
-		if ( !firstTime ) {
-
 		this.anims.create({
 			key: 'lavaMovement',
 			frames: this.anims.generateFrameNumbers('lava', { start: 0, end: 1 }),
@@ -82,26 +97,31 @@
 		});
 
 		this.anims.create({
-			key: 'up',
+			key: 'left',
 			frames: this.anims.generateFrameNumbers('laxo', { start: 0, end: 0 }),
 			frameRate: 10,
 			repeat: -1
 		});
 
 		this.anims.create({
-			key: 'turn',
-			frames: [ { key: 'laxo', frame: 4 }],
-			frameRate: 20
-		});
-
-		this.anims.create({
-			key: 'down',
-			frames: this.anims.generateFrameNumbers('laxo', { start: 5, end: 8 }),
+			key: 'die',
+			frames: this.anims.generateFrameNumbers('laxo', { start: 8, end: 9 }),
 			frameRate: 10,
 			repeat: -1
-		});        
-		firstTime = true;
-		}
+		});
+		// this.anims.create({
+		// 	key: 'turn',
+		// 	frames: [ { key: 'laxo', frame: 4 }],
+		// 	frameRate: 20
+		// });
+
+		this.anims.create({
+			key: 'right',
+			frames: this.anims.generateFrameNumbers('laxo', { start: 1, end: 1 }),
+			frameRate: 10,
+			repeat: -1
+		});
+		
 		cursors = this.input.keyboard.createCursorKeys();
 		
 		this.physics.add.collider(player, platforms);
@@ -112,11 +132,22 @@
 		    	gameScene.gameOver();
 		    }
 		}, null, this);
+
+		this.physics.add.overlap(lava, platformsBase, function(player, lava) {
+		    if ( player && lava ) {
+		    	gameScene.gameAgain();
+		    }
+		}, null, this);
+		
 		lava.anims.play('lavaMovement', true);
 	};
 
 	gameScene.update = function() {
-		lava.setVelocityY(-16);
+		if ( willKilltoPlayer ) {
+			lava.setVelocityY(-16);
+		} else {
+			lava.setVelocityY(24);
+		}
 		// if (cursors.up.isDown) {
 		// 	player.setVelocityY(-160);
 		// 	player.anims.play('up', true);
@@ -125,12 +156,12 @@
 
 		if (cursors.left.isDown) {
 			player.setVelocityX(-160);
-			player.anims.play('up', true);
-			avoidDie();
+			player.anims.play('left', true);
+			gameScene.playerAvoidDie();
 		} else if (cursors.right.isDown) {
 			player.setVelocityX(160);
-			player.anims.play('up', true);
-			avoidDie();
+			player.anims.play('right', true);
+			gameScene.playerAvoidDie();
 		}
 
 		// else if (cursors.down.isDown) {
@@ -181,37 +212,28 @@
 	};
 	
 	gameScene.gameOver = function() {
-		// lava.anims.stop();
+		player.anims.play('die', true);
+		lava.anims.stop();
+		// lava.pause();
 		//player.anims.stop();
-		lava.setVelocityY(16);
+		// lava.setVelocityY(16);
 		//console.log(">o", lava);
-		lava.setVelocityY(32);
+		// lava.setVelocityY(32);
+		// console.log(">>", lava);
+		willKilltoPlayer = false;
 		//this.scene.restart();
 	};
 
+	gameScene.gameAgain = function() {
+		willKilltoPlayer = true;
+		player.anims.play('left', true);
+		lava.anims.play('lavaMovement', true);
+	};
 
-
-	
-	function choose(choices) {
-		var index = Math.floor(Math.random() * choices.length);
-		return choices[index];
-	}
-
-	function avoidDie() {
+	gameScene.playerAvoidDie = function() {
 		lava.setVelocityY(16);
-	}
+	};
 
-	function playerDie (player, lava)
-	{
-	    console.log(">>>", player, "------", lava);
-	    if ( player && lava ) {
-	    	game.scene.restart();
-	    }
-	    //star.disableBody(true, true);
-	}
-	function gameOver() {
-    	this.scene.restart();
-	}
 	</script>
 
 </body>
