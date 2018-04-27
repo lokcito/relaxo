@@ -7,6 +7,39 @@
 
 	<script>
 	var gameScene = new Phaser.Scene('Game');
+	var config = {
+		type: Phaser.AUTO,
+		width: 640,
+		backgroundColor: '#fff',
+		height: 900,
+		physics: {
+			default: 'arcade',
+			arcade: {
+				gravity: { y: 100 }
+			},
+			impact: {}
+		},
+		scene: gameScene
+		// scene: {
+		// 	preload: preload,
+		// 	create: create,
+		// 	update: update,
+		// 	gameOver: gameOver
+		// }
+	};
+	var game = new Phaser.Game(config);
+	var player;
+	var lava;
+	var playerImpact;
+	var platforms;
+	var cursors;
+	var tileSpriteBg;
+	var tileSpriteWall;
+	// var blockA;
+
+	var counter = 0;
+	var positions = [260, 280, 300, 320, 340, 360, 380, 400, 420, 440, 460, 480, 500, 520, 540, 560];
+	var firstTime = false;
 	gameScene.preload = function() {
 		this.load.image('background', 'assets/images/generals/bg.dark.png');
 		this.load.image('wall', 'assets/images/generals/wall.png');
@@ -39,6 +72,7 @@
 		player.setBounce(0.2);
 		player.setCollideWorldBounds(true);
 
+		if ( !firstTime ) {
 
 		this.anims.create({
 			key: 'lavaMovement',
@@ -66,8 +100,8 @@
 			frameRate: 10,
 			repeat: -1
 		});        
-
-
+		firstTime = true;
+		}
 		cursors = this.input.keyboard.createCursorKeys();
 		
 		this.physics.add.collider(player, platforms);
@@ -145,44 +179,18 @@
 	gameScene.die = function() {
 
 	};
-
+	
 	gameScene.gameOver = function() {
-		this.scene.restart();
+		// lava.anims.stop();
+		//player.anims.stop();
+		lava.setVelocityY(16);
+		//console.log(">o", lava);
+		lava.setVelocityY(32);
+		//this.scene.restart();
 	};
 
-	var config = {
-		type: Phaser.AUTO,
-		width: 640,
-		backgroundColor: '#fff',
-		height: 900,
-		physics: {
-			default: 'arcade',
-			arcade: {
-				gravity: { y: 100 }
-			},
-			impact: {}
-		},
-		scene: gameScene
-		// scene: {
-		// 	preload: preload,
-		// 	create: create,
-		// 	update: update,
-		// 	gameOver: gameOver
-		// }
-	};
 
-	var game = new Phaser.Game(config);
-	var player;
-	var lava;
-	var playerImpact;
-	var platforms;
-	var cursors;
-	var tileSpriteBg;
-	var tileSpriteWall;
-	// var blockA;
 
-	var counter = 0;
-	var positions = [260, 280, 300, 320, 340, 360, 380, 400, 420, 440, 460, 480, 500, 520, 540, 560];
 	
 	function choose(choices) {
 		var index = Math.floor(Math.random() * choices.length);

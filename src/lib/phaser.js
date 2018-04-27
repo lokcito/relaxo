@@ -47259,7 +47259,8 @@ var AnimationManager = new Class({
     create: function (config)
     {
         var key = config.key;
-
+        // console.log("::", key);
+        // console.log("::::", this.anims.has(key));
         if (!key || this.anims.has(key))
         {
             console.warn('Invalid Animation Key, or Key already in use: ' + key);
@@ -116097,6 +116098,7 @@ var Velocity = {
      */
     setVelocityY: function (y)
     {
+        // console.log("velo", this);
         this.body.velocity.y = y;
 
         return this;
